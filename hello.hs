@@ -1,4 +1,8 @@
 module Main where
 
 main :: IO ()
-main = putStrLn "Hello user!"
+main = do
+    putStrLn "Hello! What is your name?"
+    name <- getLine 
+    let out = "Nice to meet you, " ++ name ++ "!"
+    putStrLn out
