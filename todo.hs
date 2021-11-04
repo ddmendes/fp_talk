@@ -1,8 +1,15 @@
 module Main where
 
+-- This is a comment
+
+-- This is how we define types
 type Item = String
 type Items = [Item]
 
+
+
+-- This is how we define data structures
+-- This is called as sum type / product type or in this case sum and product type
 data Command
     = Quit
     | Help
@@ -10,6 +17,9 @@ data Command
     | AddItem String
     | Done Int
 
+
+
+-- This is how we define a function signature
 parseCommand :: String -> Either String Command
 parseCommand line = case words line of
     ["h"] -> Right Help
@@ -22,17 +32,25 @@ parseCommand line = case words line of
     "a" : "-" : item -> Right (AddItem (unwords item))
     _ -> Left "Unknown command."
 
+
+
+-- This is how we declare variables
 -- Returns a new list of Items with the new item in it
 addItem :: Item -> Items -> Items
 addItem item items = item : items
 
+
+
 -- Returns a string representation of the items
 displayItems :: Items -> String
 displayItems items =
+    -- Separate variables
     let
+        -- Using type inference
         displayItem index item = show index ++ " - " ++ item
         reversedList = reverse items
         displayedItemsList = zipWith displayItem [1..] reversedList
+    -- From scope
     in
         unlines displayedItemsList
 
@@ -50,6 +68,9 @@ removeItem reversedIndex allItems =
                         Right newItems -> Right (item : newItems)
                         Left errMsg -> Left errMsg
 
+
+
+-- IO declares function as non deterministic due to IO operations.
 help :: IO ()
 help = do
     let helpMessage = "Commands\n\
@@ -92,10 +113,12 @@ interactWithUser items = do
 
         Right Quit -> do
             putStrLn "Bye!"
+            -- To return from non-pure border we call pure
+            -- to "purify" the value we go to a pure and deterministic environment
             pure ()
 
         Left errMsg -> do
-            putStrLn ("Error: " ++ errMsg)
+            putStrLn ("Error: " ++ errMsg ++ "\n")
             interactWithUser items
 
 main :: IO ()
