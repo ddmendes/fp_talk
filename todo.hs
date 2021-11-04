@@ -5,19 +5,21 @@ type Items = [Item]
 
 data Command
     = Quit
+    | Help
     | DisplayItems
     | AddItem String
     | Done Int
 
 parseCommand :: String -> Either String Command
 parseCommand line = case words line of
-    ["quit"] -> Right Quit
-    ["items"] -> Right DisplayItems
-    ["done", idxStr] ->
-        if all (\c -> elem c "0123456789") idxStr
+    ["h"] -> Right Help
+    ["q"] -> Right Quit
+    ["i"] -> Right DisplayItems
+    ["d", idxStr] ->
+        if all (\c -> c `elem` "0123456789") idxStr
             then Right (Done (read idxStr))
             else Left "Invalid index."
-    "add" : "-" : item -> Right (AddItem (unwords item))
+    "a" : "-" : item -> Right (AddItem (unwords item))
     _ -> Left "Unknown command."
 
 -- Returns a new list of Items with the new item in it
@@ -48,14 +50,26 @@ removeItem reversedIndex allItems =
                         Right newItems -> Right (item : newItems)
                         Left errMsg -> Left errMsg
 
+help :: IO ()
+help = do
+    let helpMessage = "Commands\n\
+                       \    i: show all items\n\
+                       \    a - <item>: add todo item\n\
+                       \    d <index>: mark item as done\n\
+                       \    q: quit\n"
+    putStrLn helpMessage
+
 
 -- Takes a list of items
 -- Interact with the user
 interactWithUser :: Items -> IO ()
 interactWithUser items = do
-    putStrLn "Commands: quit, items, add - <item to add>, done <item index>"
     line <- getLine
-    case parseCommand line of 
+    case parseCommand line of
+        Right Help -> do
+            help
+            interactWithUser items
+
         Right DisplayItems -> do
             putStrLn "TODO items:"
             putStrLn (displayItems items)
@@ -63,17 +77,17 @@ interactWithUser items = do
 
         Right (AddItem item) -> do
             let newItems = addItem item items
-            putStrLn "Item added."
+            putStrLn "Item added.\n"
             interactWithUser newItems
 
         Right (Done index) -> do
             let result = removeItem index items
             case result of
                 Left errMsg -> do
-                    putStrLn ("Error: " ++ errMsg)
+                    putStrLn ("Error: " ++ errMsg ++ "\n")
                     interactWithUser items
                 Right newItems -> do
-                    putStrLn "Item done."
+                    putStrLn "Item done.\n"
                     interactWithUser newItems
 
         Right Quit -> do
@@ -86,7 +100,7 @@ interactWithUser items = do
 
 main :: IO ()
 main = do
-    putStrLn "TODO app"
+    putStrLn "TODO App"
+    help
     let initialList = []
     interactWithUser initialList
-    putStrLn "Thanks for using this app."
